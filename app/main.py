@@ -1,6 +1,7 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 
 from app.config import settings
 from app.database import engine, Base
@@ -37,6 +38,11 @@ app.add_middleware(AuditMiddleware)
 @app.get("/health", tags=["系统"])
 async def health_check():
     return {"status": "ok", "service": settings.APP_NAME}
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/docs")
 
 
 app.include_router(admin.router, prefix="/api/v1")

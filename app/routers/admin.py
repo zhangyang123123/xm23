@@ -96,17 +96,31 @@ async def list_credentials(
 
 @router.post("/{app_id}/credentials/{credential_id}/disable", response_model=CredentialOut)
 async def disable_credential(app_id: str, credential_id: int, db: AsyncSession = Depends(get_db)):
+    app_svc = ApplicationService(db)
+    app = await app_svc.get_by_app_id(app_id)
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
     cred_svc = CredentialService(db)
-    cred = await cred_svc.set_active(credential_id, is_active=False)
+    cred = await cred_svc.get_by_id(credential_id)
     if not cred:
         raise HTTPException(status_code=404, detail="Credential not found")
+    if cred.app_id != app_id:
+        raise HTTPException(status_code=400, detail="Credential does not belong to this application")
+    cred = await cred_svc.set_active(credential_id, is_active=False)
     return cred
 
 
 @router.post("/{app_id}/credentials/{credential_id}/enable", response_model=CredentialOut)
 async def enable_credential(app_id: str, credential_id: int, db: AsyncSession = Depends(get_db)):
+    app_svc = ApplicationService(db)
+    app = await app_svc.get_by_app_id(app_id)
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
     cred_svc = CredentialService(db)
-    cred = await cred_svc.set_active(credential_id, is_active=True)
+    cred = await cred_svc.get_by_id(credential_id)
     if not cred:
         raise HTTPException(status_code=404, detail="Credential not found")
+    if cred.app_id != app_id:
+        raise HTTPException(status_code=400, detail="Credential does not belong to this application")
+    cred = await cred_svc.set_active(credential_id, is_active=True)
     return cred

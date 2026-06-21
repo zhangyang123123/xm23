@@ -92,6 +92,12 @@ class CredentialService:
         await self.db.refresh(cred)
         return cred, api_secret
 
+    async def get_by_id(self, credential_id: int) -> Optional[ApiCredential]:
+        result = await self.db.execute(
+            select(ApiCredential).where(ApiCredential.id == credential_id)
+        )
+        return result.scalar_one_or_none()
+
     async def get_by_api_key(self, api_key: str) -> Optional[ApiCredential]:
         result = await self.db.execute(
             select(ApiCredential).where(ApiCredential.api_key == api_key)
